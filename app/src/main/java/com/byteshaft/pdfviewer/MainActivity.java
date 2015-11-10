@@ -1,22 +1,27 @@
 package com.byteshaft.pdfviewer;
 
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import net.sf.andpdf.pdfviewer.PdfViewerActivity;
+import com.joanzapata.pdfview.PDFView;
+import com.joanzapata.pdfview.listener.OnDrawListener;
+import com.joanzapata.pdfview.listener.OnLoadCompleteListener;
+import com.joanzapata.pdfview.listener.OnPageChangeListener;
+
+import java.io.File;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnDrawListener, OnLoadCompleteListener, OnPageChangeListener {
 
+    private PDFView pdfView;
     private final int RESULT_CODE = 100;
-//    private PDFView pdfView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,38 +29,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-//        pdfView = (PDFView) findViewById(R.id.pdfview);
+        pdfView = (PDFView) findViewById(R.id.pdfview);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case RESULT_CODE:
-                if (resultCode == RESULT_OK) {
-                    // Get the Uri of the selected file
-                    Uri uri = data.getData();
-                    Log.d("test", "File Uri: " + uri.toString());
-                    // Get the path
-                    String path = uri.getPath();
-                    Log.d("test", "File Path: " + path);
-                    openPdfIntent(path);
-                }
-                break;
+        if (requestCode == RESULT_CODE && data != null) {
+            Uri uri = data.getData();
+            String path = uri.getPath();
+            System.out.println(path);
+            pdfView.fromFile(new File(path))
+                    .defaultPage(1)
+                    .showMinimap(false)
+                    .enableSwipe(true)
+                    .onDraw(this)
+                    .onLoad(this)
+                    .onPageChange(this)
+                    .load();
         }
-
-    }
-
-    private void openPdfIntent(String path) {
-        try
-        {
-            final Intent intent = new Intent(MainActivity.this, Viewer.class);
-            intent.putExtra(PdfViewerActivity.EXTRA_PDFFILENAME, path);
-            startActivity(intent);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
 
@@ -74,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.open_file_chooser) {
+        if (id == R.id.open_file_chooser)   {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("application/pdf");
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -93,4 +85,19 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onLayerDrawn(Canvas canvas, float pageWidth, float pageHeight, int displayedPage) {
+
+    }
+
+    @Override
+    public void loadComplete(int nbPages) {
+
+    }
+
+    @Override
+    public void onPageChanged(int page, int pageCount) {
+
+    }
 }
+
