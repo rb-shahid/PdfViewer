@@ -7,6 +7,8 @@ import com.byteshaft.pdfviewer.AppGlobals;
 
 public class Helpers {
 
+    private int allPages;
+
     public static SharedPreferences getPreferenceManager() {
         return PreferenceManager.getDefaultSharedPreferences(AppGlobals.getContext());
     }
@@ -20,5 +22,4 @@ public class Helpers {
         SharedPreferences sharedPreferences = getPreferenceManager();
         return sharedPreferences.getString(AppGlobals.LAST_FILE_KEY, "");
     }
-
 }
