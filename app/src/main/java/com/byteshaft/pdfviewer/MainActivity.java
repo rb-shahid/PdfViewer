@@ -1,14 +1,22 @@
 package com.byteshaft.pdfviewer;
 
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.byteshaft.pdfviewer.utils.Helpers;
@@ -20,22 +28,27 @@ import com.joanzapata.pdfview.listener.OnPageChangeListener;
 import java.io.File;
 
 
-public class MainActivity extends AppCompatActivity implements OnDrawListener, OnLoadCompleteListener, OnPageChangeListener {
+public class MainActivity extends AppCompatActivity implements OnDrawListener, OnLoadCompleteListener, OnPageChangeListener, View.OnClickListener {
 
-    private PDFView pdfView;
+    private PDFView mPdfView;
     private final int RESULT_CODE = 100;
-    private TextView pagesDetailsTextView;
+    private static boolean isFileChooserShown = false;
+    private Button pagesDetailsTextView;
+    private Helpers mHelpers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mHelpers = new Helpers();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        pdfView = (PDFView) findViewById(R.id.pdfview);
-        pagesDetailsTextView = (TextView) findViewById(R.id.page_details);
-        if (Helpers.getPreviousSavedFile().equals("")) {
+        mPdfView = (PDFView) findViewById(R.id.pdfview);
+        pagesDetailsTextView = (Button) findViewById(R.id.page_details);
+        pagesDetailsTextView.setOnClickListener(this);
+        if (Helpers.getPreviousSavedFile().equals("") && !isFileChooserShown) {
             showFileChooser();
+            isFileChooserShown = true;
         } else {
             loadPdfFile(Helpers.getPreviousSavedFile());
         }
@@ -43,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
     }
 
     private void loadPdfFile(String path) {
-        pdfView.fromFile(new File(path))
+        mPdfView.fromFile(new File(path))
                 .defaultPage(1)
                 .showMinimap(false)
                 .enableSwipe(true)
@@ -51,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
                 .onLoad(this)
                 .onPageChange(this)
                 .load();
-        pagesDetailsTextView.setText(pdfView.getCurrentPage()+"/"+pdfView.getPageCount());
+        pagesDetailsTextView.setText(mPdfView.getCurrentPage() + "/" + mPdfView.getPageCount());
     }
 
     @Override
@@ -118,6 +131,63 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
     public void onPageChanged(int page, int pageCount) {
         pagesDetailsTextView.setText(page+"/"+pageCount);
 
+    }
+
+    @Override
+    public void onClick(View v) {
+         switch (v.getId()) {
+             case R.id.page_details:
+                 showAlertDialog(MainActivity.this);
+                 break;
+         }
+    }
+
+    public void showAlertDialog(final Activity activity) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity);
+        alertDialog.setTitle("Move to page");
+        alertDialog.setMessage("Enter page number");
+
+        final EditText input = new EditText(activity);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+//        alertDialog.setIcon(R.drawable.key);
+
+        alertDialog.setPositiveButton("YES",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        int num = 0;
+                        String text = input.getText().toString();
+                        try {
+                            num = Integer.parseInt(text);
+                            Log.i("", num + " is a number");
+                        } catch (NumberFormatException e) {
+                            Log.i("",text+"is not a number");
+                            Toast.makeText(AppGlobals.getContext(), "please enter a valid number", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                            return;
+                        }
+                        if (num <= mPdfView.getPageCount()) {
+                            mPdfView.jumpTo(num);
+                        } else {
+                            Toast.makeText(getApplicationContext(), "page limit exceeded", Toast.LENGTH_SHORT).show();
+
+                        }
+                        dialog.dismiss();
+                    }
+                });
+
+        alertDialog.setNegativeButton("NO",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        alertDialog.show();
     }
 }
 
