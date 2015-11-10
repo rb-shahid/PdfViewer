@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
     private static boolean isFileChooserShown = false;
     private Button pagesDetailsTextView;
     private static File currentFile;
+    private static boolean isFileLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
         if (Helpers.getPreviousSavedFile().equals("") && !isFileChooserShown) {
             showFileChooser();
             isFileChooserShown = true;
+            isFileLoaded = false;
         } else {
             loadPdfFile(Helpers.getPreviousSavedFile());
         }
@@ -71,23 +73,29 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
                 .onPageChange(this)
                 .load();
         pagesDetailsTextView.setText(mPdfView.getCurrentPage() + "/" + mPdfView.getPageCount());
+        isFileLoaded = true;
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Helpers.saveCurrentPage(currentFile.getName(), mPdfView.getCurrentPage());
+        if (isFileLoaded) {
+            Helpers.saveCurrentPage(currentFile.getName(), mPdfView.getCurrentPage());
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Helpers.saveCurrentPage(currentFile.getName(), mPdfView.getCurrentPage());
+        if (isFileLoaded) {
+            Helpers.saveCurrentPage(currentFile.getName(), mPdfView.getCurrentPage());
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RESULT_CODE && data != null) {
+            isFileLoaded = true;
             Uri uri = data.getData();
             String path = uri.getPath();
             loadPdfFile(path);
