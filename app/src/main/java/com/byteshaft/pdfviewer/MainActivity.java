@@ -8,8 +8,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.byteshaft.pdfviewer.utils.Helpers;
 import com.joanzapata.pdfview.PDFView;
 import com.joanzapata.pdfview.listener.OnDrawListener;
 import com.joanzapata.pdfview.listener.OnLoadCompleteListener;
@@ -22,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
 
     private PDFView pdfView;
     private final int RESULT_CODE = 100;
+    private TextView pagesDetailsTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +33,25 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         pdfView = (PDFView) findViewById(R.id.pdfview);
+        pagesDetailsTextView = (TextView) findViewById(R.id.page_details);
+        if (Helpers.getPreviousSavedFile().equals("")) {
+            showFileChooser();
+        } else {
+            loadPdfFile(Helpers.getPreviousSavedFile());
+        }
+
+    }
+
+    private void loadPdfFile(String path) {
+        pdfView.fromFile(new File(path))
+                .defaultPage(1)
+                .showMinimap(false)
+                .enableSwipe(true)
+                .onDraw(this)
+                .onLoad(this)
+                .onPageChange(this)
+                .load();
+        pagesDetailsTextView.setText(pdfView.getCurrentPage()+"/"+pdfView.getPageCount());
     }
 
     @Override
@@ -37,15 +59,8 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
         if (requestCode == RESULT_CODE && data != null) {
             Uri uri = data.getData();
             String path = uri.getPath();
-            System.out.println(path);
-            pdfView.fromFile(new File(path))
-                    .defaultPage(1)
-                    .showMinimap(false)
-                    .enableSwipe(true)
-                    .onDraw(this)
-                    .onLoad(this)
-                    .onPageChange(this)
-                    .load();
+            loadPdfFile(path);
+            Helpers.savePreviousOpenedFile(path);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -67,22 +82,26 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.open_file_chooser)   {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("application/pdf");
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            try {
-                startActivityForResult(
-                        Intent.createChooser(intent, "Select a File to Upload"),
-                        RESULT_CODE);
-            } catch (android.content.ActivityNotFoundException ex) {
-                // Potentially direct the user to the Market with a Dialog
-                Toast.makeText(this, "Please install a File Manager.",
-                        Toast.LENGTH_SHORT).show();
-            }
+            showFileChooser();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showFileChooser() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("application/pdf");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            startActivityForResult(
+                    Intent.createChooser(intent, "Select a File to Upload"),
+                    RESULT_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            // Potentially direct the user to the Market with a Dialog
+            Toast.makeText(this, "Please install a File Manager.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -97,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
 
     @Override
     public void onPageChanged(int page, int pageCount) {
+        pagesDetailsTextView.setText(page+"/"+pageCount);
 
     }
 }
