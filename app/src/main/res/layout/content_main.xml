@@ -6,27 +6,30 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main" tools:context=".MainActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:orientation="horizontal"
         android:id="@+id/button_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content">
-        <Button
-            android:id="@+id/page_details"
-            android:textStyle="italic"
-            android:textSize="10sp"
-            android:layout_gravity="end"
-            android:padding="0dp"
-            android:layout_margin="0dp"
-            android:textColor="@color/colorAccent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+
+    <Button
+        android:id="@+id/page_details"
+        android:textStyle="italic"
+        android:textSize="10sp"
+        android:padding="0dp"
+        android:textColor="@color/colorAccent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+    </RelativeLayout>
 
     <com.joanzapata.pdfview.PDFView
-        android:layout_below="@+id/button_layout"
-        android:id="@+id/pdfview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+            android:layout_below="@+id/button_layout"
+            android:id="@+id/pdfview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
 
 </RelativeLayout>
