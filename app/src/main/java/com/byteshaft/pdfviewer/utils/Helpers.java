@@ -7,8 +7,6 @@ import com.byteshaft.pdfviewer.AppGlobals;
 
 public class Helpers {
 
-    private int allPages;
-
     public static SharedPreferences getPreferenceManager() {
         return PreferenceManager.getDefaultSharedPreferences(AppGlobals.getContext());
     }
@@ -21,5 +19,16 @@ public class Helpers {
     public static String getPreviousSavedFile() {
         SharedPreferences sharedPreferences = getPreferenceManager();
         return sharedPreferences.getString(AppGlobals.LAST_FILE_KEY, "");
+    }
+
+    public static void saveCurrentPage(String key, int value) {
+        SharedPreferences sharedPreferences = getPreferenceManager();
+        sharedPreferences.edit().putInt(key, value).apply();
+        System.out.println("pages saved");
+    }
+
+    public static int getLastLoadedPage(String key) {
+        SharedPreferences sharedPreferences = getPreferenceManager();
+        return sharedPreferences.getInt(key, 0);
     }
 }

@@ -34,18 +34,22 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
     private final int RESULT_CODE = 100;
     private static boolean isFileChooserShown = false;
     private Button pagesDetailsTextView;
-    private Helpers mHelpers;
+    private static File currentFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mHelpers = new Helpers();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mPdfView = (PDFView) findViewById(R.id.pdfview);
         pagesDetailsTextView = (Button) findViewById(R.id.page_details);
         pagesDetailsTextView.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         if (Helpers.getPreviousSavedFile().equals("") && !isFileChooserShown) {
             showFileChooser();
             isFileChooserShown = true;
@@ -56,15 +60,29 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
     }
 
     private void loadPdfFile(String path) {
-        mPdfView.fromFile(new File(path))
+        File file = new File(path);
+        currentFile = file;
+        mPdfView.fromFile(file)
                 .defaultPage(1)
-                .showMinimap(false)
+                .showMinimap(true)
                 .enableSwipe(true)
                 .onDraw(this)
                 .onLoad(this)
                 .onPageChange(this)
                 .load();
         pagesDetailsTextView.setText(mPdfView.getCurrentPage() + "/" + mPdfView.getPageCount());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Helpers.saveCurrentPage(currentFile.getName(), mPdfView.getCurrentPage());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Helpers.saveCurrentPage(currentFile.getName(), mPdfView.getCurrentPage());
     }
 
     @Override
@@ -124,6 +142,10 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
 
     @Override
     public void loadComplete(int nbPages) {
+        System.out.println(Helpers.getLastLoadedPage(currentFile.getName()));
+        if (Helpers.getLastLoadedPage(currentFile.getName()) != 0) {
+            mPdfView.jumpTo(Helpers.getLastLoadedPage(currentFile.getName())+1);
+        }
 
     }
 
