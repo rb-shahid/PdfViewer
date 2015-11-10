@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mPdfView = (PDFView) findViewById(R.id.pdfview);
-        pagesDetailsTextView = (Button) findViewById(R.id.page_details);
+        pagesDetailsTextView = (Button) findViewById(R.id.button_details);
         pagesDetailsTextView.setOnClickListener(this);
     }
 
@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
     @Override
     public void onClick(View v) {
          switch (v.getId()) {
-             case R.id.page_details:
+             case R.id.button_details:
                  showAlertDialog(MainActivity.this);
                  break;
          }
