@@ -13,8 +13,6 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -28,12 +26,12 @@ import com.joanzapata.pdfview.listener.OnPageChangeListener;
 import java.io.File;
 
 
-public class MainActivity extends AppCompatActivity implements OnDrawListener, OnLoadCompleteListener, OnPageChangeListener, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements OnDrawListener,
+        OnLoadCompleteListener, OnPageChangeListener {
 
     private PDFView mPdfView;
     private final int RESULT_CODE = 100;
     private static boolean isFileChooserShown = false;
-    private Button pagesDetailsTextView;
     private static File currentFile;
     private static boolean isFileLoaded = false;
 
@@ -44,8 +42,6 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mPdfView = (PDFView) findViewById(R.id.pdfview);
-        pagesDetailsTextView = (Button) findViewById(R.id.button_details);
-        pagesDetailsTextView.setOnClickListener(this);
     }
 
     @Override
@@ -72,8 +68,8 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
                 .onLoad(this)
                 .onPageChange(this)
                 .load();
-        pagesDetailsTextView.setText(mPdfView.getCurrentPage() + "/" + mPdfView.getPageCount());
         isFileLoaded = true;
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -123,9 +119,17 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
         if (id == R.id.open_file_chooser)   {
             showFileChooser();
             return true;
+        } else if (id == R.id.pages)  {
+            showAlertDialog(MainActivity.this);
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.pages).setTitle(mPdfView.getCurrentPage() + "/" + mPdfView.getPageCount());
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private void showFileChooser() {
@@ -159,18 +163,9 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
 
     @Override
     public void onPageChanged(int page, int pageCount) {
-        pagesDetailsTextView.setText(page+"/"+pageCount);
-
+        invalidateOptionsMenu();
     }
 
-    @Override
-    public void onClick(View v) {
-         switch (v.getId()) {
-             case R.id.button_details:
-                 showAlertDialog(MainActivity.this);
-                 break;
-         }
-    }
 
     public void showAlertDialog(final Activity activity) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity);
@@ -195,13 +190,13 @@ public class MainActivity extends AppCompatActivity implements OnDrawListener, O
                             num = Integer.parseInt(text);
                             Log.i("", num + " is a number");
                         } catch (NumberFormatException e) {
-                            Log.i("",text+"is not a number");
+                            Log.i("", text + "is not a number");
                             Toast.makeText(AppGlobals.getContext(), "please enter a valid number", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                             return;
                         }
                         if (num <= mPdfView.getPageCount()) {
-                            mPdfView.jumpTo(num);
+                            mPdfView.jumpTo(num+1);
                         } else {
                             Toast.makeText(getApplicationContext(), "page limit exceeded", Toast.LENGTH_SHORT).show();
 

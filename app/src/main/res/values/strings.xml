@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PdfViewer</string>
     <string name="choose_file">choose file</string>
+    <string name="pages">pages</string>
 </resources>
